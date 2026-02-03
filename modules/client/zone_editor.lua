@@ -2,8 +2,6 @@
 -- ZONE EDITOR & MANAGEMENT (IMPROVED)
 -- ====================================
 
-local lib = exports.ox_lib
-
 ZoneEditor = {}
 ZoneEditor.CreationMode = false
 ZoneEditor.CurrentPoints = {}
@@ -41,7 +39,7 @@ function ZoneEditor:OpenMainMenu()
             }
         }
     })
-
+    
     lib.showContext('zombie_zone_main')
 end
 
@@ -51,35 +49,35 @@ end
 
 function ZoneEditor:CreateCircleZone()
     local input = lib.inputDialog('Kreis-Zone Konfiguration', {
-        { type = 'input',  label = 'Name der Zone',  required = true, placeholder = 'Sandy Shores' },
-        { type = 'number', label = 'Radius (Meter)', min = 10,        max = 200,                   default = 50 },
-        { type = 'number', label = 'Max. Zombies',   min = 1,         max = 50,                    default = 15 },
+        {type = 'input', label = 'Name der Zone', required = true, placeholder = 'Sandy Shores'},
+        {type = 'number', label = 'Radius (Meter)', min = 10, max = 200, default = 50},
+        {type = 'number', label = 'Max. Zombies', min = 1, max = 50, default = 15},
         {
             type = 'select',
             label = 'Gefahr-Level',
             required = true,
             options = {
-                { value = 'low',    label = 'Niedrig' },
-                { value = 'medium', label = 'Mittel' },
-                { value = 'high',   label = 'Hoch' }
+                {value = 'low', label = 'Niedrig'},
+                {value = 'medium', label = 'Mittel'},
+                {value = 'high', label = 'Hoch'}
             },
             default = 'medium'
         }
     })
-
+    
     if not input then return end
-
+    
     local coords = GetEntityCoords(PlayerPedId())
-
+    
     local zoneData = {
         type = 'circle',
-        coords = { x = coords.x, y = coords.y, z = coords.z },
+        coords = {x = coords.x, y = coords.y, z = coords.z},
         radius = input[2],
         maxZombies = input[3],
         dangerLevel = input[4],
         enabled = true
     }
-
+    
     TriggerServerEvent('d4rk_zombies:server:CreateZone', input[1], zoneData)
     lib.notify({
         title = 'Zone erstellt',
@@ -94,36 +92,35 @@ end
 
 function ZoneEditor:StartPolygonCreation()
     local input = lib.inputDialog('Polygon-Zone Konfiguration', {
-        { type = 'input',  label = 'Name der Zone', required = true },
-        { type = 'number', label = 'Max. Zombies',  min = 1,        max = 50, default = 30 },
+        {type = 'input', label = 'Name der Zone', required = true},
+        {type = 'number', label = 'Max. Zombies', min = 1, max = 50, default = 30},
         {
             type = 'select',
             label = 'Gefahr-Level',
             options = {
-                { value = 'low',    label = 'Niedrig' },
-                { value = 'medium', label = 'Mittel' },
-                { value = 'high',   label = 'Hoch' }
+                {value = 'low', label = 'Niedrig'},
+                {value = 'medium', label = 'Mittel'},
+                {value = 'high', label = 'Hoch'}
             },
             default = 'medium'
         }
     })
-
+    
     if not input then return end
-
+    
     self.CreationMode = true
     self.CurrentPoints = {}
     self.CurrentZoneName = input[1]
     self.CurrentMaxZombies = input[2]
     self.CurrentDangerLevel = input[3]
-
+    
     lib.notify({
         title = 'Polygon-Modus AKTIV',
-        description =
-        '1. Laufe zu Eckpunkten\n2. Nutze /zadd für jeden Punkt\n3. Nutze /zsave zum Speichern\n(Min. 3 Punkte)',
+        description = '1. Laufe zu Eckpunkten\n2. Nutze /zadd für jeden Punkt\n3. Nutze /zsave zum Speichern\n(Min. 3 Punkte)',
         type = 'inform',
         duration = 10000
     })
-
+    
     -- Start visual feedback thread
     self:StartDebugVisualization()
 end
@@ -137,22 +134,22 @@ function ZoneEditor:AddPoint()
         })
         return
     end
-
+    
     local coords = GetEntityCoords(PlayerPedId())
     table.insert(self.CurrentPoints, vector2(coords.x, coords.y))
-
+    
     -- Add debug marker
     table.insert(self.DebugMarkers, {
         coords = coords,
         number = #self.CurrentPoints
     })
-
+    
     lib.notify({
         title = 'Punkt gesetzt',
         description = 'Punkt #' .. #self.CurrentPoints .. ' hinzugefügt',
         type = 'success'
     })
-
+    
     PlaySoundFrontend(-1, "CHECKPOINT_BEHIND", "HUD_MINI_GAME_SOUNDSET", 1)
 end
 
@@ -165,7 +162,7 @@ function ZoneEditor:SavePolygon()
         })
         return
     end
-
+    
     if #self.CurrentPoints < 3 then
         lib.notify({
             title = 'Fehler',
@@ -174,9 +171,9 @@ function ZoneEditor:SavePolygon()
         })
         return
     end
-
+    
     local playerZ = GetEntityCoords(PlayerPedId()).z
-
+    
     local zoneData = {
         type = 'polygon',
         points = self.CurrentPoints,
@@ -186,15 +183,15 @@ function ZoneEditor:SavePolygon()
         minZ = playerZ - 10.0,
         maxZ = playerZ + 20.0
     }
-
+    
     TriggerServerEvent('d4rk_zombies:server:CreateZone', self.CurrentZoneName, zoneData)
-
+    
     lib.notify({
         title = 'Zone gespeichert',
         description = self.CurrentZoneName .. ' wurde erstellt!',
         type = 'success'
     })
-
+    
     -- Cleanup
     self:CancelCreation()
 end
@@ -216,7 +213,7 @@ function ZoneEditor:StartDebugVisualization()
     CreateThread(function()
         while self.CreationMode do
             Wait(0)
-
+            
             -- Draw markers at each point
             for i, marker in ipairs(self.DebugMarkers) do
                 DrawMarker(
@@ -228,11 +225,11 @@ function ZoneEditor:StartDebugVisualization()
                     0, 255, 0, 150,
                     false, true, 2, false, nil, nil, false
                 )
-
+                
                 -- Draw text label
                 DrawText3D(marker.coords.x, marker.coords.y, marker.coords.z + 1.0, '#' .. marker.number)
             end
-
+            
             -- Draw lines between points
             if #self.DebugMarkers > 1 then
                 for i = 1, #self.DebugMarkers - 1 do
@@ -240,7 +237,7 @@ function ZoneEditor:StartDebugVisualization()
                     local p2 = self.DebugMarkers[i + 1].coords
                     DrawLine(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z, 0, 255, 0, 255)
                 end
-
+                
                 -- Draw closing line
                 if #self.DebugMarkers >= 3 then
                     local first = self.DebugMarkers[1].coords
@@ -248,13 +245,12 @@ function ZoneEditor:StartDebugVisualization()
                     DrawLine(first.x, first.y, first.z, last.x, last.y, last.z, 0, 255, 0, 150)
                 end
             end
-
+            
             -- Draw help text
             BeginTextCommandDisplayHelp("STRING")
-            AddTextComponentSubstringPlayerName(
-                "~g~/zadd~w~ - Punkt hinzufügen | ~g~/zsave~w~ - Speichern | ~r~BACKSPACE~w~ - Abbrechen")
+            AddTextComponentSubstringPlayerName("~g~/zadd~w~ - Punkt hinzufügen | ~g~/zsave~w~ - Speichern | ~r~BACKSPACE~w~ - Abbrechen")
             EndTextCommandDisplayHelp(0, false, true, -1)
-
+            
             -- Cancel with backspace
             if IsControlJustPressed(0, 177) then
                 lib.notify({
@@ -271,7 +267,7 @@ end
 function DrawText3D(x, y, z, text)
     local onScreen, _x, _y = World3dToScreen2d(x, y, z)
     local px, py, pz = table.unpack(GetGameplayCamCoords())
-
+    
     SetTextScale(0.35, 0.35)
     SetTextFont(4)
     SetTextProportional(1)
@@ -289,11 +285,10 @@ end
 function ZoneEditor:OpenZoneList()
     lib.callback('d4rk_zombies:server:GetZones', false, function(zones)
         local options = {}
-
+        
         for zoneName, zoneData in pairs(zones) do
-            local dangerColor = zoneData.dangerLevel == 'high' and 'red' or zoneData.dangerLevel == 'low' and 'green' or
-                'yellow'
-
+            local dangerColor = zoneData.dangerLevel == 'high' and 'red' or zoneData.dangerLevel == 'low' and 'green' or 'yellow'
+            
             table.insert(options, {
                 title = zoneName,
                 description = ('Typ: %s | Max: %s | Gefahr: %s'):format(
@@ -308,22 +303,22 @@ function ZoneEditor:OpenZoneList()
                 end
             })
         end
-
+        
         if #options == 0 then
-            options = { {
+            options = {{
                 title = 'Keine Zonen vorhanden',
                 description = 'Erstelle deine erste Zone',
                 icon = 'info-circle'
-            } }
+            }}
         end
-
+        
         lib.registerContext({
             id = 'zombie_zone_list',
             title = 'Zonen Liste',
             menu = 'zombie_zone_main',
             options = options
         })
-
+        
         lib.showContext('zombie_zone_list')
     end)
 end
@@ -345,7 +340,7 @@ function ZoneEditor:OpenZoneManagement(name, data)
                     else
                         SetEntityCoords(PlayerPedId(), coords.x, coords.y, GetEntityCoords(PlayerPedId()).z)
                     end
-                    lib.notify({ title = 'Teleportiert', type = 'success' })
+                    lib.notify({title = 'Teleportiert', type = 'success'})
                 end
             },
             {
@@ -354,12 +349,12 @@ function ZoneEditor:OpenZoneManagement(name, data)
                 icon = 'edit',
                 onSelect = function()
                     local input = lib.inputDialog('Zone bearbeiten', {
-                        { type = 'number', label = 'Max Zombies', default = data.maxZombies, min = 1, max = 50 }
+                        {type = 'number', label = 'Max Zombies', default = data.maxZombies, min = 1, max = 50}
                     })
-
+                    
                     if input then
-                        TriggerServerEvent('d4rk_zombies:server:UpdateZone', name, { maxZombies = input[1] })
-                        lib.notify({ title = 'Aktualisiert', description = name, type = 'success' })
+                        TriggerServerEvent('d4rk_zombies:server:UpdateZone', name, {maxZombies = input[1]})
+                        lib.notify({title = 'Aktualisiert', description = name, type = 'success'})
                     end
                 end
             },
@@ -368,8 +363,8 @@ function ZoneEditor:OpenZoneManagement(name, data)
                 description = 'Zone ein/ausschalten',
                 icon = data.enabled and 'toggle-off' or 'toggle-on',
                 onSelect = function()
-                    TriggerServerEvent('d4rk_zombies:server:UpdateZone', name, { enabled = not data.enabled })
-                    lib.notify({ title = 'Status geändert', type = 'success' })
+                    TriggerServerEvent('d4rk_zombies:server:UpdateZone', name, {enabled = not data.enabled})
+                    lib.notify({title = 'Status geändert', type = 'success'})
                 end
             },
             {
@@ -384,17 +379,17 @@ function ZoneEditor:OpenZoneManagement(name, data)
                         centered = true,
                         cancel = true
                     })
-
+                    
                     if confirm == 'confirm' then
                         TriggerServerEvent('d4rk_zombies:server:DeleteZone', name)
-                        lib.notify({ title = 'Gelöscht', description = name, type = 'success' })
+                        lib.notify({title = 'Gelöscht', description = name, type = 'success'})
                         lib.hideContext()
                     end
                 end
             }
         }
     })
-
+    
     lib.showContext('zombie_zone_manage')
 end
 
@@ -407,7 +402,7 @@ RegisterCommand(Config.Commands.ZoneMenu, function()
         if hasPermission then
             ZoneEditor:OpenMainMenu()
         else
-            lib.notify({ title = 'Keine Berechtigung', type = 'error' })
+            lib.notify({title = 'Keine Berechtigung', type = 'error'})
         end
     end)
 end)
