@@ -236,7 +236,7 @@ function ZombieManager:SpawnZombiesInZone(zoneName, zoneData, playerCoords, maxZ
                 -- ✅ SPAWN FIX
                 if ImprovedZombieAI then
                     SetTimeout(500, function()
-                        ImprovedZombieAI:ActivateZombie(newZombie)
+                        ImprovedZombieAI:ActivateZombie(zombieEntity)
                     end)
                 end
 
