@@ -1,5 +1,5 @@
 -- ====================================
--- IMPROVED ZOMBIE AI SYSTEM V2
+-- IMPROVED ZOMBIE AI SYSTEM V2.1.1 (SPAWN FIX)
 -- ====================================
 
 ImprovedZombieAI = {}
@@ -14,8 +14,85 @@ function ImprovedZombieAI:Init()
     self:OverrideZombieManager()
 
     if Config.Debug then
-        print("^2[D4RK ZOMBIES]^0 Improved AI System V2 initialized")
+        print("^2[D4RK ZOMBIES]^0 Improved AI System V2.1.1 initialized")
     end
+end
+
+-- ====================================
+-- ZOMBIE ACTIVATION (NEW - FIX SPAWN STANDING)
+-- ====================================
+
+function ImprovedZombieAI:ActivateZombie(zombieOrEntity)
+    local entity
+
+    -- ✅ Akzeptiere ENTWEDER Zombie-Objekt ODER direkt Entity
+    if type(zombieOrEntity) == "table" then
+        -- Es ist ein Zombie-Objekt
+        if not zombieOrEntity or not zombieOrEntity.entity then
+            if Config.Debug then
+                print("^1[AI]^0 ActivateZombie: Invalid zombie object")
+            end
+            return
+        end
+        entity = zombieOrEntity.entity
+    else
+        -- Es ist direkt die Entity (NUMBER)
+        entity = zombieOrEntity
+    end
+
+    -- ✅ ENTITY-CHECK
+    if not entity or not DoesEntityExist(entity) then
+        if Config.Debug then
+            print("^1[AI]^0 ActivateZombie: Entity doesn't exist")
+        end
+        return
+    end
+
+    -- Force AI Activation
+    SetBlockingOfNonTemporaryEvents(entity, true)
+    SetPedKeepTask(entity, true)
+
+    -- Gib sofort eine Task
+    local playerPed = PlayerPedId()
+    if not DoesEntityExist(playerPed) then return end
+
+    local playerCoords = GetEntityCoords(playerPed)
+    local zombieCoords = GetEntityCoords(entity)
+    local distance = #(playerCoords - zombieCoords)
+
+    -- Wenn Spieler in der Nähe → sofort Aggro
+    if distance < 30.0 then
+        TaskGoToEntity(entity, playerPed, -1, 1.5, 2.0, 1073741824, 0)
+
+        if Config.Debug then
+            print("^2[AI]^0 Zombie activated with immediate aggro (distance: " .. math.floor(distance) .. "m)")
+        end
+    else
+        -- Sonst: Wander-Task
+        local angle = math.random() * 2 * math.pi
+        local dist = math.random(5, 15)
+
+        local x = zombieCoords.x + (math.cos(angle) * dist)
+        local y = zombieCoords.y + (math.sin(angle) * dist)
+
+        local found, z = GetGroundZFor_3dCoord(x, y, zombieCoords.z + 10.0, false)
+
+        if found then
+            TaskGoToCoordAnyMeans(entity, x, y, z, 0.8, 0, false, 786603, 0.0)
+
+            if Config.Debug then
+                print("^2[AI]^0 Zombie activated with wander task")
+            end
+        end
+    end
+
+    -- Initialisiere Stuck-Data
+    self.StuckZombies[entity] = {
+        lastPos = zombieCoords,
+        stuckTime = 0,
+        lastCheck = GetGameTimer(),
+        unstuckAttempts = 0
+    }
 end
 
 -- ====================================
@@ -124,6 +201,51 @@ function ImprovedZombieAI:UnstuckZombie(zombie, zoneName)
 end
 
 -- ====================================
+-- WANDER BEHAVIOR (NEW)
+-- ====================================
+
+function ImprovedZombieAI:MakeZombieWander(zombieOrEntity, currentPos)
+    local entity
+
+    -- ✅ Akzeptiere ENTWEDER Zombie-Objekt ODER direkt Entity
+    if type(zombieOrEntity) == "table" then
+        if not zombieOrEntity or not zombieOrEntity.entity then
+            if Config.Debug then
+                print("^1[AI]^0 MakeZombieWander: Invalid zombie object")
+            end
+            return
+        end
+        entity = zombieOrEntity.entity
+    else
+        entity = zombieOrEntity
+    end
+
+    if not DoesEntityExist(entity) then return end
+
+    -- Falls keine Position übergeben wurde, hole aktuelle
+    if not currentPos then
+        currentPos = GetEntityCoords(entity)
+    end
+
+    local angle = math.random() * 2 * math.pi
+    local distance = math.random(5, 15) -- 5-15 Meter
+
+    local x = currentPos.x + (math.cos(angle) * distance)
+    local y = currentPos.y + (math.sin(angle) * distance)
+
+    local found, z = GetGroundZFor_3dCoord(x, y, currentPos.z + 10.0, false)
+
+    if found then
+        local targetPos = vector3(x, y, z)
+        TaskGoToCoordAnyMeans(entity, targetPos.x, targetPos.y, targetPos.z, 0.8, 0, false, 786603, 0.0)
+
+        if Config.Debug then
+            print("^2[AI]^0 Zombie wandering to new position")
+        end
+    end
+end
+
+-- ====================================
 -- GROUP BEHAVIOR (Zombies bleiben zusammen)
 -- ====================================
 
@@ -164,7 +286,7 @@ function ImprovedZombieAI:FormGroup(zoneName, zombies)
         centerZ / validCount
     )
 
-    -- Zombies die zu weit von Gruppe sind -> zurück zur Gruppe
+    -- Zombies die zu weit von Gruppe sind → zurück zur Gruppe
     for _, zombie in ipairs(zombies) do
         if zombie and DoesEntityExist(zombie.entity) and not zombie.isDead and not zombie.hasAggro then
             local coords = GetEntityCoords(zombie.entity)
