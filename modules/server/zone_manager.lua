@@ -2,6 +2,8 @@
 -- ZONE MANAGEMENT (SERVER)
 -- ====================================
 
+local lib = exports.d4rk_lib
+
 ZoneManager = {}
 ZoneManager.Zones = {}
 ZoneManager.ZonesFile = 'zones.json'
@@ -12,7 +14,7 @@ end
 
 function ZoneManager:LoadZones()
     local file = LoadResourceFile(GetCurrentResourceName(), self.ZonesFile)
-    
+
     if file then
         local success, data = pcall(json.decode, file)
         if success and data then
@@ -29,7 +31,7 @@ function ZoneManager:LoadZones()
 end
 
 function ZoneManager:SaveZones()
-    local encoded = json.encode(self.Zones, {indent = true})
+    local encoded = json.encode(self.Zones, { indent = true })
     SaveResourceFile(GetCurrentResourceName(), self.ZonesFile, encoded, -1)
 end
 
@@ -37,13 +39,13 @@ function ZoneManager:CreateZone(name, data)
     if self.Zones[name] then
         return false, 'Zone existiert bereits'
     end
-    
+
     self.Zones[name] = data
     self:SaveZones()
-    
+
     -- Notify all clients
     TriggerClientEvent('d4rk_zombies:client:ReloadZones', -1)
-    
+
     return true
 end
 
@@ -51,14 +53,14 @@ function ZoneManager:UpdateZone(name, updates)
     if not self.Zones[name] then
         return false, 'Zone nicht gefunden'
     end
-    
+
     for key, value in pairs(updates) do
         self.Zones[name][key] = value
     end
-    
+
     self:SaveZones()
     TriggerClientEvent('d4rk_zombies:client:ReloadZones', -1)
-    
+
     return true
 end
 
@@ -66,11 +68,11 @@ function ZoneManager:DeleteZone(name)
     if not self.Zones[name] then
         return false, 'Zone nicht gefunden'
     end
-    
+
     self.Zones[name] = nil
     self:SaveZones()
     TriggerClientEvent('d4rk_zombies:client:ReloadZones', -1)
-    
+
     return true
 end
 
@@ -93,13 +95,13 @@ end
 -- Events
 RegisterNetEvent('d4rk_zombies:server:CreateZone', function(name, data)
     local src = source
-    
+
     if not exports.d4rk_lib:CheckPermission(src, Config.AdminGroups) then
         return
     end
-    
+
     local success, err = ZoneManager:CreateZone(name, data)
-    
+
     if success then
         -- Discord Log
         if Config.Discord.Enabled then
@@ -110,13 +112,13 @@ end)
 
 RegisterNetEvent('d4rk_zombies:server:UpdateZone', function(name, updates)
     local src = source
-    
+
     if not exports.d4rk_lib:CheckPermission(src, Config.AdminGroups) then
         return
     end
-    
+
     ZoneManager:UpdateZone(name, updates)
-    
+
     if Config.Discord.Enabled then
         DiscordLogger:LogZoneEdited(src, name, updates)
     end
@@ -124,13 +126,13 @@ end)
 
 RegisterNetEvent('d4rk_zombies:server:DeleteZone', function(name)
     local src = source
-    
+
     if not exports.d4rk_lib:CheckPermission(src, Config.AdminGroups) then
         return
     end
-    
+
     ZoneManager:DeleteZone(name)
-    
+
     if Config.Discord.Enabled then
         DiscordLogger:LogZoneDeleted(src, name)
     end

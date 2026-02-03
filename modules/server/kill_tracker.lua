@@ -2,6 +2,9 @@
 -- KILL TRACKING SYSTEM (SERVER)
 -- ====================================
 
+local lib = exports.d4rk_lib
+
+
 KillTracker = {}
 
 function KillTracker:Init()

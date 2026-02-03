@@ -2,6 +2,8 @@
 -- ADMIN PANEL
 -- ====================================
 
+local lib = exports.d4rk_lib
+
 AdminPanel = {}
 
 function AdminPanel:OpenMainMenu()
@@ -47,7 +49,7 @@ function AdminPanel:OpenMainMenu()
                         centered = true,
                         cancel = true
                     })
-                    
+
                     if confirm == 'confirm' then
                         TriggerServerEvent('d4rk_zombies:server:ResetAllStats')
                         exports.d4rk_lib:Notify('Alle Stats wurden zurückgesetzt', 'success')
@@ -64,17 +66,17 @@ function AdminPanel:OpenMainMenu()
             }
         }
     })
-    
+
     lib.showContext('zombie_admin_main')
 end
 
 function AdminPanel:ShowLeaderboard()
     lib.callback('d4rk_zombies:server:GetLeaderboard', false, function(leaderboard, myStats)
         local options = {}
-        
+
         for rank, data in ipairs(leaderboard) do
             local medal = rank == 1 and '🥇' or rank == 2 and '🥈' or rank == 3 and '🥉' or ''
-            
+
             table.insert(options, {
                 title = ('%s #%s - %s'):format(medal, rank, data.name),
                 description = ('%s Zombie Kills'):format(data.kills),
@@ -82,7 +84,7 @@ function AdminPanel:ShowLeaderboard()
                 iconColor = rank <= 3 and 'yellow' or 'white'
             })
         end
-        
+
         -- Eigene Stats unten anzeigen
         if myStats then
             table.insert(options, {
@@ -98,14 +100,14 @@ function AdminPanel:ShowLeaderboard()
                 iconColor = 'green'
             })
         end
-        
+
         lib.registerContext({
             id = 'zombie_leaderboard',
             title = _('leaderboard_title'),
             menu = 'zombie_admin_main',
             options = options
         })
-        
+
         lib.showContext('zombie_leaderboard')
     end)
 end
@@ -113,7 +115,7 @@ end
 function AdminPanel:OpenTeleportMenu()
     lib.callback('d4rk_zombies:server:GetOnlinePlayers', false, function(players)
         local options = {}
-        
+
         for _, player in ipairs(players) do
             table.insert(options, {
                 title = player.name,
@@ -124,21 +126,21 @@ function AdminPanel:OpenTeleportMenu()
                 end
             })
         end
-        
+
         if #options == 0 then
-            options = {{
+            options = { {
                 title = 'Keine Spieler online',
                 icon = 'info-circle'
-            }}
+            } }
         end
-        
+
         lib.registerContext({
             id = 'zombie_teleport',
             title = 'Spieler Teleport',
             menu = 'zombie_admin_main',
             options = options
         })
-        
+
         lib.showContext('zombie_teleport')
     end)
 end
