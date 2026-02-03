@@ -2,7 +2,7 @@
 -- ZONE EDITOR & MANAGEMENT (IMPROVED)
 -- ====================================
 
-local lib = exports.d4rk_lib
+local lib = exports.ox_lib
 
 ZoneEditor = {}
 ZoneEditor.CreationMode = false
@@ -252,7 +252,7 @@ function ZoneEditor:StartDebugVisualization()
             -- Draw help text
             BeginTextCommandDisplayHelp("STRING")
             AddTextComponentSubstringPlayerName(
-            "~g~/zadd~w~ - Punkt hinzufügen | ~g~/zsave~w~ - Speichern | ~r~BACKSPACE~w~ - Abbrechen")
+                "~g~/zadd~w~ - Punkt hinzufügen | ~g~/zsave~w~ - Speichern | ~r~BACKSPACE~w~ - Abbrechen")
             EndTextCommandDisplayHelp(0, false, true, -1)
 
             -- Cancel with backspace
@@ -292,7 +292,7 @@ function ZoneEditor:OpenZoneList()
 
         for zoneName, zoneData in pairs(zones) do
             local dangerColor = zoneData.dangerLevel == 'high' and 'red' or zoneData.dangerLevel == 'low' and 'green' or
-            'yellow'
+                'yellow'
 
             table.insert(options, {
                 title = zoneName,

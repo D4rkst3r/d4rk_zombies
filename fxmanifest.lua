@@ -10,6 +10,7 @@ shared_scripts {
     '@ox_lib/init.lua',
     'config/*.lua',
     'locale/*.lua'
+
 }
 
 client_scripts {
@@ -28,12 +29,13 @@ server_scripts {
     'modules/server/*.lua'
 }
 
+
 dependencies {
     'qb-core',
     'ox_lib',
     'ox_target',
     'PolyZone',
-    'd4rk_lib'
+    'd4rk_lib' -- Das hier sorgt dafür, dass d4rk_lib zuerst startet!
 }
 
 files {

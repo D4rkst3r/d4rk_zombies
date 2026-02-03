@@ -2,7 +2,19 @@
 -- KILL TRACKING SYSTEM (SERVER)
 -- ====================================
 
-local lib = exports.d4rk_lib
+local d4rk = exports.d4rk_lib
+
+-- Wir bauen das Objekt so auf, dass .callback.register funktioniert
+local lib = {
+    callback = {
+        register = function(name, cb)
+            return d4rk:RegisterCallback(name, cb)
+        end
+    },
+    notify = function(source, msg, type)
+        return d4rk:Notify(source, msg, type)
+    end
+}
 
 
 KillTracker = {}

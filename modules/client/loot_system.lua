@@ -1,9 +1,6 @@
 -- ====================================
 -- LOOT SYSTEM
 -- ====================================
-
-local lib = exports.d4rk_lib
-
 RegisterNetEvent('d4rk_zombies:client:LootZombie', function(entity)
     if not DoesEntityExist(entity) then return end
 

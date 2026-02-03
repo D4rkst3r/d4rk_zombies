@@ -2,7 +2,18 @@
 -- ZONE MANAGEMENT (SERVER)
 -- ====================================
 
-local lib = exports.d4rk_lib
+-- In einem Server-Script von d4rk_zombies
+local d4rk = exports.d4rk_lib
+
+-- Wir registrieren den Callback in deiner d4rk_lib
+d4rk:RegisterCallback('d4rk_zombies:server:GetZones', function(source, cb)
+    -- Hier musst du die Zonen-Tabelle zurückgeben, die dein Script nutzt
+    -- Ich nenne sie hier mal 'Config.Zones' oder 'ZoneCache'
+    -- Je nachdem wie sie bei dir heißt:
+    local zones = ZoneCache or Config.Zones or {}
+
+    cb(zones)
+end)
 
 ZoneManager = {}
 ZoneManager.Zones = {}

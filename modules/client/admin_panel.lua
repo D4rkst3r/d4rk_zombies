@@ -2,7 +2,13 @@
 -- ADMIN PANEL
 -- ====================================
 
-local lib = exports.d4rk_lib
+local d4rk = exports.d4rk_lib
+local lib = {
+    callback = function(name, ...)
+        -- Client-Callbacks in ox_lib werden meistens so aufgerufen:
+        return d4rk:callback(name, ...)
+    end
+}
 
 AdminPanel = {}
 

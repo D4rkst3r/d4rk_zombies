@@ -7,8 +7,19 @@ QBCore = exports['qb-core']:GetCoreObject()
 -- ====================================
 -- INITIALIZATION
 -- ====================================
-local lib = exports.d4rk_lib
+local d4rk = exports.d4rk_lib
 
+-- Wir bauen das Objekt so auf, dass .callback.register funktioniert
+local lib = {
+    callback = {
+        register = function(name, cb)
+            return d4rk:RegisterCallback(name, cb)
+        end
+    },
+    notify = function(source, msg, type)
+        return d4rk:Notify(source, msg, type)
+    end
+}
 
 CreateThread(function()
     print('^2━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━^0')
@@ -23,11 +34,22 @@ CreateThread(function()
 end)
 
 -- ====================================
--- PERMISSION CHECKS
+-- PERMISSION CHECKS (KORRIGIERT)
 -- ====================================
 
-lib.callback.register('d4rk_zombies:server:CheckPermission', function(source)
-    return exports.d4rk_lib:CheckPermission(source, Config.AdminGroups)
+d4rk:RegisterCallback('d4rk_zombies:server:CheckPermission', function(source, cb)
+    local hasPerm = exports.d4rk_lib:CheckPermission(source, Config.AdminGroups)
+
+    -- WICHTIG: In deinem System muss die Antwort per cb() gesendet werden!
+    if cb then
+        cb(hasPerm)
+    end
+end)
+
+-- Und falls der Fehler mit den Zonen noch kommt, füge das auch direkt hier ein:
+d4rk:RegisterCallback('d4rk_zombies:server:GetZones', function(source, cb)
+    local zones = ZoneManager:GetAllZones()
+    if cb then cb(zones) end
 end)
 
 -- ====================================

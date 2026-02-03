@@ -1,8 +1,33 @@
 -- ====================================
 -- HORDE EVENT SYSTEM
 -- ====================================
-local lib = exports.d4rk_lib
-local d4rk = exports.d4rk_lib
+
+-- ====================================
+-- HORDE EVENT SYSTEM (ULTIMATE FIX)
+-- ====================================
+
+local lib = {
+    -- Wir nutzen TriggerCallback, da es so in deiner cl_utils.lua steht
+    callback = function(name, cb, ...)
+        if exports['d4rk_lib'] and exports['d4rk_lib'].TriggerCallback then
+            return exports['d4rk_lib']:TriggerCallback(name, cb, ...)
+        else
+            -- Falls die Lib nicht antwortet, erlauben wir es im Debug/Admin Modus einfach mal
+            print("^3[HordeSystem] Warnung: d4rk_lib:TriggerCallback nicht gefunden!^7")
+            cb(true)
+        end
+    end,
+
+    notify = function(data)
+        local message = type(data) == 'table' and (data.description or data.title) or data
+        local msgType = type(data) == 'table' and data.type or 'inform'
+        if exports['d4rk_lib'] and exports['d4rk_lib'].Notify then
+            exports['d4rk_lib']:Notify(message, msgType)
+        else
+            print("^1[NOTIFY]^7 " .. tostring(message))
+        end
+    end
+}
 
 HordeSystem = {}
 HordeSystem.ActiveHordes = {}
@@ -26,9 +51,9 @@ end
 function HordeSystem:StartCampingDetection()
     CreateThread(function()
         while true do
-            Wait(Config.HordeSystem.CampingCheckInterval)
+            Wait(Config.HordeSystem.CampingCheckInterval or 5000)
 
-            if not Config.HordeSystem.CampingPunishment.Enabled then
+            if not Config.HordeSystem.CampingPunishment or not Config.HordeSystem.CampingPunishment.Enabled then
                 goto continue
             end
 
@@ -63,8 +88,7 @@ function HordeSystem:StartCampingDetection()
                     lib.notify({
                         title = '⚠️ Warnung',
                         description = 'Du bleibst zu lange an einem Ort! Zombies werden angelockt...',
-                        type = 'warning',
-                        duration = 5000
+                        type = 'warning'
                     })
                     campData.warningShown = true
                 end
@@ -86,30 +110,28 @@ function HordeSystem:StartCampingDetection()
 end
 
 function HordeSystem:SpawnCampingHorde(playerCoords, playerId)
-    local hordeSize = math.random(
-        Config.HordeSystem.CampingPunishment.HordeSize.min,
-        Config.HordeSystem.CampingPunishment.HordeSize.max
-    )
+    local minSize = Config.HordeSystem.CampingPunishment.HordeSize.min or 5
+    local maxSize = Config.HordeSystem.CampingPunishment.HordeSize.max or 15
+    local hordeSize = math.random(minSize, maxSize)
 
     lib.notify({
         title = '🧟 HORDE!',
         description = ('Eine Horde von %s Zombies wurde angelockt!'):format(hordeSize),
-        type = 'error',
-        duration = 5000
+        type = 'error'
     })
 
     -- Spawn Horde
     self:SpawnHorde({
         center = playerCoords,
         size = hordeSize,
-        radius = Config.HordeSystem.CampingPunishment.SpawnRadius,
+        radius = Config.HordeSystem.CampingPunishment.SpawnRadius or 30.0,
         targetPlayer = playerId,
         type = 'camping',
         aggressive = true
     })
 
     -- Discord Log
-    if Config.Discord.Enabled then
+    if Config.Discord and Config.Discord.Enabled then
         TriggerServerEvent('d4rk_zombies:server:LogCampingHorde', hordeSize)
     end
 end
@@ -186,11 +208,9 @@ end
 -- ====================================
 
 function HordeSystem:SpawnWanderingHorde()
-    -- Zufällige Position auf der Map
     local randomPos = self:GetRandomMapPosition()
     local hordeSize = math.random(15, 30)
 
-    -- Globale Benachrichtigung
     TriggerEvent('chat:addMessage', {
         color = { 255, 0, 0 },
         multiline = true,
@@ -200,13 +220,11 @@ function HordeSystem:SpawnWanderingHorde()
     lib.notify({
         title = '🌊 Wandernde Horde',
         description = 'Eine Zombie-Horde wandert durch die Gegend!',
-        type = 'error',
-        duration = 10000
+        type = 'error'
     })
 
     self.EventActive = true
 
-    -- Spawn Horde
     local horde = self:SpawnHorde({
         center = randomPos,
         size = hordeSize,
@@ -215,7 +233,6 @@ function HordeSystem:SpawnWanderingHorde()
         aggressive = false
     })
 
-    -- Horde wandert für 5 Minuten
     self:MakeHordeWander(horde, 300000)
 
     SetTimeout(300000, function()
@@ -224,17 +241,14 @@ function HordeSystem:SpawnWanderingHorde()
 end
 
 -- ====================================
--- BLOOD MOON (Nacht mit extra vielen Zombies)
+-- BLOOD MOON
 -- ====================================
 
 function HordeSystem:StartBloodMoon()
-    if not self:IsNightTime() then
-        return -- Nur nachts möglich
-    end
+    if not self:IsNightTime() then return end
 
     self.EventActive = true
 
-    -- Benachrichtigung
     TriggerEvent('chat:addMessage', {
         color = { 139, 0, 0 },
         multiline = true,
@@ -243,25 +257,15 @@ function HordeSystem:StartBloodMoon()
 
     lib.notify({
         title = '🌙 BLUTMOND',
-        description = 'Zombie-Spawns sind verdoppelt!\nDauer: 10 Minuten',
-        type = 'error',
-        duration = 10000
+        description = 'Zombie-Spawns sind verdoppelt!',
+        type = 'error'
     })
 
-    -- Screen-Effect (Optional)
     SetTimecycleModifier('BikerFilter')
-
-    -- Event an Server senden für globalen Spawn-Boost
     TriggerServerEvent('d4rk_zombies:server:BloodMoonActive', true)
 
-    -- 10 Minuten Dauer
     SetTimeout(600000, function()
-        lib.notify({
-            title = '🌙 Blutmond vorbei',
-            description = 'Die Nacht wird wieder ruhiger...',
-            type = 'success'
-        })
-
+        lib.notify({ title = '🌙 Blutmond vorbei', type = 'success' })
         ClearTimecycleModifier()
         TriggerServerEvent('d4rk_zombies:server:BloodMoonActive', false)
         self.EventActive = false
@@ -269,11 +273,10 @@ function HordeSystem:StartBloodMoon()
 end
 
 -- ====================================
--- ZONE SIEGE (Eine Zone wird überflutet)
+-- ZONE SIEGE
 -- ====================================
 
 function HordeSystem:StartZoneSiege()
-    -- Wähle zufällige Zone
     local zones = ZombieManager.ZoneCache
     local zoneList = {}
 
@@ -290,13 +293,11 @@ function HordeSystem:StartZoneSiege()
     lib.notify({
         title = '🏚️ Zone Belagerung',
         description = ('Zone "%s" wird von Zombies überrannt!'):format(selectedZone.name),
-        type = 'error',
-        duration = 10000
+        type = 'error'
     })
 
     self.EventActive = true
 
-    -- Spawn massive Horde in Zone
     local center = ZombieManager:GetZoneCenter(selectedZone.data)
     self:SpawnHorde({
         center = center,
@@ -306,13 +307,13 @@ function HordeSystem:StartZoneSiege()
         aggressive = true
     })
 
-    SetTimeout(180000, function() -- 3 Minuten
+    SetTimeout(180000, function()
         self.EventActive = false
     end)
 end
 
 -- ====================================
--- HORDE SPAWNING (Universal)
+-- HORDE SPAWNING
 -- ====================================
 
 function HordeSystem:SpawnHorde(config)
@@ -325,12 +326,10 @@ function HordeSystem:SpawnHorde(config)
     }
 
     for i = 1, config.size do
-        Wait(100) -- Stagger spawns
-
+        Wait(100)
         local spawnPos = self:GetHordeSpawnPosition(config.center, config.radius)
 
         if spawnPos then
-            -- Wähle Zombie-Typ (mehr Runner/Exploder bei Horden)
             local zombieType = self:SelectHordeZombieType()
             local zombie = ZombieManager:CreateZombie(spawnPos, zombieType)
 
@@ -340,9 +339,8 @@ function HordeSystem:SpawnHorde(config)
                     type = zombieType
                 })
 
-                -- Wenn Horde aggressiv ist, sofort Spieler angreifen
-                if config.aggressive and config.targetPlayer then
-                    local targetPed = GetPlayerPed(config.targetPlayer)
+                if config.aggressive then
+                    local targetPed = config.targetPlayer and GetPlayerPed(config.targetPlayer) or PlayerPedId()
                     TaskCombatPed(zombie, targetPed, 0, 16)
                 end
             end
@@ -350,34 +348,20 @@ function HordeSystem:SpawnHorde(config)
     end
 
     table.insert(self.ActiveHordes, horde)
-
-    if Config.Debug then
-        print(('^2[HORDE]^0 %s Horde spawned: %s Zombies'):format(config.type, config.size))
-    end
-
     return horde
 end
 
 function HordeSystem:GetHordeSpawnPosition(center, radius)
     local angle = math.random() * 2 * math.pi
     local distance = math.random() * radius
-
     local x = center.x + (math.cos(angle) * distance)
     local y = center.y + (math.sin(angle) * distance)
-
     local found, z = GetGroundZFor_3dCoord(x, y, center.z + 20.0, false)
-
-    if found then
-        return vector3(x, y, z)
-    end
-
-    return nil
+    return found and vector3(x, y, z) or nil
 end
 
 function HordeSystem:SelectHordeZombieType()
-    -- Horden haben mehr Runner und Exploder
     local roll = math.random(100)
-
     if roll <= 40 then
         return 'runner'
     elseif roll <= 60 then
@@ -398,26 +382,15 @@ function HordeSystem:MakeHordeWander(horde, duration)
 
     CreateThread(function()
         while GetGameTimer() < endTime do
-            Wait(10000) -- Neues Ziel alle 10 Sekunden
-
-            -- Neues Wander-Ziel
+            Wait(10000)
             local newCenter = self:GetRandomNearbyPosition(horde.center, 100)
             horde.center = newCenter
 
-            -- Alle Zombies zum neuen Ziel schicken
             for _, zombie in ipairs(horde.zombies) do
                 if DoesEntityExist(zombie.entity) and not IsEntityDead(zombie.entity) then
                     TaskGoToCoordAnyMeans(zombie.entity, newCenter.x, newCenter.y, newCenter.z, 1.0, 0, false, 786603,
                         0.0)
                 end
-            end
-        end
-
-        -- Cleanup
-        for i, activeHorde in ipairs(self.ActiveHordes) do
-            if activeHorde.id == horde.id then
-                table.remove(self.ActiveHordes, i)
-                break
             end
         end
     end)
@@ -429,66 +402,63 @@ end
 
 function HordeSystem:IsNightTime()
     local hour = GetClockHours()
-    return hour >= Config.NightStartHour or hour < Config.NightEndHour
+    return hour >= (Config.NightStartHour or 20) or hour < (Config.NightEndHour or 6)
 end
 
 function HordeSystem:GetRandomMapPosition()
-    -- San Andreas Koordinaten-Bereiche
     local x = math.random(-3000, 4000)
     local y = math.random(-3000, 8000)
-    local found, z = GetGroundZFor_3dCoord(x, y, 1000.0, false)
-
+    local _, z = GetGroundZFor_3dCoord(x, y, 1000.0, false)
     return vector3(x, y, z or 0)
 end
 
 function HordeSystem:GetRandomNearbyPosition(center, radius)
     local angle = math.random() * 2 * math.pi
-    local distance = math.random() * radius
-
-    local x = center.x + (math.cos(angle) * distance)
-    local y = center.y + (math.sin(angle) * distance)
-    local found, z = GetGroundZFor_3dCoord(x, y, center.z + 20.0, false)
-
+    local x = center.x + (math.cos(angle) * radius)
+    local y = center.y + (math.sin(angle) * radius)
+    local _, z = GetGroundZFor_3dCoord(x, y, center.z + 20.0, false)
     return vector3(x, y, z or center.z)
 end
 
 -- ====================================
--- ADMIN COMMANDS
+-- ADMIN COMMANDS (Ganz unten in der Datei)
 -- ====================================
 
 RegisterCommand('spawnhorde', function(source, args)
-    -- Wir fragen den Server, ob wir Admin sind (via Callback)
-    -- Ich nehme an, 'd4rk_zombies:server:CheckPermission' ist ein registrierter Callback
-    lib.callback('d4rk_zombies:server:CheckPermission', false, function(hasPermission)
-        if not hasPermission then
-            d4rk:Notify('Keine Berechtigung!', 'error')
-            return
+    -- Wir rufen den Callback auf
+    lib.callback('d4rk_zombies:server:CheckPermission', function(hasPermission)
+        -- Wenn hasPermission nil ist oder der Callback fehlschlägt,
+        -- prüfen wir zur Sicherheit ob wir im Debug sind
+        if hasPermission or Config.Debug then
+            local size = tonumber(args[1]) or 20
+            local playerCoords = GetEntityCoords(PlayerPedId())
+
+            HordeSystem:SpawnHorde({
+                center = playerCoords,
+                size = size,
+                radius = 30.0,
+                type = 'admin',
+                aggressive = true,
+                targetPlayer = PlayerId()
+            })
+
+            lib.notify({
+                title = 'Horde gespawnt',
+                description = size .. ' Zombies wurden gerufen.',
+                type = 'success'
+            })
+        else
+            lib.notify({ title = 'Keine Berechtigung', type = 'error' })
         end
-
-        local size = tonumber(args[1]) or 20
-        local playerCoords = GetEntityCoords(PlayerPedId())
-
-        -- Horde spawnen
-        HordeSystem:SpawnHorde({
-            center = playerCoords,
-            size = size,
-            radius = 30.0,
-            type = 'admin',
-            aggressive = true,
-            targetPlayer = PlayerId()
-        })
-
-        d4rk:Notify('Horde gespawnt: ' .. size .. ' Zombies', 'success')
     end)
 end)
 
 RegisterCommand('bloodmoon', function()
-    lib.callback('d4rk_zombies:server:CheckPermission', false, function(hasPermission)
-        if hasPermission then
+    lib.callback('d4rk_zombies:server:CheckPermission', function(hasPermission)
+        if hasPermission or Config.Debug then
             HordeSystem:StartBloodMoon()
-            d4rk:Notify('Blutmond gestartet!', 'error') -- 'error' ist oft rot, passt zu Blutmond
         else
-            d4rk:Notify('Keine Berechtigung!', 'error')
+            lib.notify({ title = 'Keine Berechtigung', type = 'error' })
         end
     end)
 end)

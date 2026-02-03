@@ -40,8 +40,8 @@ Config.ZombieTypes = {
         HeadshotMultiplier = 2.0,
         Color = "^2",
         Sounds = {
-            Idle = {'GENERIC_INSULT_HIGH', 'SPEECH_PARAMS_FORCE'},
-            Attack = {'GENERIC_WAR_CRY', 'SPEECH_PARAMS_FORCE_SHOUTED'}
+            Idle = { 'GENERIC_INSULT_HIGH', 'SPEECH_PARAMS_FORCE' },
+            Attack = { 'GENERIC_WAR_CRY', 'SPEECH_PARAMS_FORCE_SHOUTED' }
         }
     },
     ['runner'] = {
@@ -58,8 +58,8 @@ Config.ZombieTypes = {
         HeadshotMultiplier = 2.5,
         Color = "^3",
         Sounds = {
-            Idle = {'GENERIC_FRIGHTENED_HIGH', 'SPEECH_PARAMS_FORCE'},
-            Attack = {'GENERIC_INSULT_HIGH', 'SPEECH_PARAMS_FORCE_SHOUTED'}
+            Idle = { 'GENERIC_FRIGHTENED_HIGH', 'SPEECH_PARAMS_FORCE' },
+            Attack = { 'GENERIC_INSULT_HIGH', 'SPEECH_PARAMS_FORCE_SHOUTED' }
         }
     },
     ['tank'] = {
@@ -76,8 +76,8 @@ Config.ZombieTypes = {
         HeadshotMultiplier = 1.5,
         Color = "^1",
         Sounds = {
-            Idle = {'GENERIC_WAR_CRY', 'SPEECH_PARAMS_FORCE'},
-            Attack = {'GENERIC_INSULT_HIGH', 'SPEECH_PARAMS_FORCE_SHOUTED_CLEAR'}
+            Idle = { 'GENERIC_WAR_CRY', 'SPEECH_PARAMS_FORCE' },
+            Attack = { 'GENERIC_INSULT_HIGH', 'SPEECH_PARAMS_FORCE_SHOUTED_CLEAR' }
         }
     },
     ['exploder'] = {
@@ -97,8 +97,8 @@ Config.ZombieTypes = {
         ExplosionRadius = 5.0,
         Color = "^8",
         Sounds = {
-            Idle = {'GENERIC_HOWS_IT_GOING', 'SPEECH_PARAMS_FORCE'},
-            Attack = {'GENERIC_INSULT_MED', 'SPEECH_PARAMS_FORCE_SHOUTED'}
+            Idle = { 'GENERIC_HOWS_IT_GOING', 'SPEECH_PARAMS_FORCE' },
+            Attack = { 'GENERIC_INSULT_MED', 'SPEECH_PARAMS_FORCE_SHOUTED' }
         }
     }
 }
@@ -110,18 +110,18 @@ Config.ZombieAggroSettings = {
     -- Schuss-Erkennung
     shootNoiseRange = 150.0,
     shootNoiseChance = 70,
-    
+
     -- Sicht-Erkennung
-    visualRange = 8.0,
-    visualRangeNight = 5.0,
+    visualRange = 50.0,
+    visualRangeNight = 30.0,
     requireLineOfSight = true,
-    
+
     -- Nähe-Erkennung
-    closeRange = 3.0,
-    
+    closeRange = 20.0,
+
     -- Aggro-Verlust
     loseAggroDistance = 40.0,
-    loseAggroChance = 80
+    loseAggroChance = 40
 }
 
 -- ====================================
@@ -132,14 +132,14 @@ Config.NoiseSystem = {
     ShowBlipOnMap = Config.Debug, -- Nur im Debug-Mode
     BlipColor = 1,
     BlipAlpha = 100,
-    
+
     Crouching = 2.0,
     Walking = 5.0,
     Running = 25.0,
     Shooting = 60.0,
     ShootingWithSuppressor = 15.0,
     VehicleMultiplier = 0.8,
-    
+
     ZombieVisionRange = 15.0,
     VisionAngle = 120,
 }
@@ -202,10 +202,10 @@ Config.LootTables = {
             flags = 1
         },
         Items = {
-            {item = 'water_bottle', min = 1, max = 2, chance = 40},
-            {item = 'sandwich', min = 1, max = 1, chance = 35},
-            {item = 'bandage', min = 1, max = 2, chance = 30},
-            {item = 'pistol_ammo', min = 3, max = 8, chance = 15}
+            { item = 'water_bottle', min = 1, max = 2, chance = 40 },
+            { item = 'sandwich',     min = 1, max = 1, chance = 35 },
+            { item = 'bandage',      min = 1, max = 2, chance = 30 },
+            { item = 'pistol_ammo',  min = 3, max = 8, chance = 15 }
         }
     },
     ['runner_loot'] = {
@@ -216,10 +216,10 @@ Config.LootTables = {
             flags = 1
         },
         Items = {
-            {item = 'water_bottle', min = 1, max = 3, chance = 50},
-            {item = 'painkillers', min = 1, max = 2, chance = 25},
-            {item = 'pistol_ammo', min = 5, max = 12, chance = 30},
-            {item = 'weapon_knife', min = 1, max = 1, chance = 10}
+            { item = 'water_bottle', min = 1, max = 3,  chance = 50 },
+            { item = 'painkillers',  min = 1, max = 2,  chance = 25 },
+            { item = 'pistol_ammo',  min = 5, max = 12, chance = 30 },
+            { item = 'weapon_knife', min = 1, max = 1,  chance = 10 }
         }
     },
     ['tank_loot'] = {
@@ -230,11 +230,11 @@ Config.LootTables = {
             flags = 1
         },
         Items = {
-            {item = 'bandage', min = 2, max = 4, chance = 60},
-            {item = 'painkillers', min = 1, max = 2, chance = 40},
-            {item = 'rifle_ammo', min = 10, max = 20, chance = 35},
-            {item = 'weapon_bat', min = 1, max = 1, chance = 20},
-            {item = 'armor', min = 1, max = 1, chance = 5}
+            { item = 'bandage',     min = 2,  max = 4,  chance = 60 },
+            { item = 'painkillers', min = 1,  max = 2,  chance = 40 },
+            { item = 'rifle_ammo',  min = 10, max = 20, chance = 35 },
+            { item = 'weapon_bat',  min = 1,  max = 1,  chance = 20 },
+            { item = 'armor',       min = 1,  max = 1,  chance = 5 }
         }
     },
     ['exploder_loot'] = {
@@ -245,10 +245,10 @@ Config.LootTables = {
             flags = 1
         },
         Items = {
-            {item = 'pistol_ammo', min = 10, max = 25, chance = 50},
-            {item = 'rifle_ammo', min = 8, max = 15, chance = 40},
-            {item = 'weapon_molotov', min = 1, max = 2, chance = 15},
-            {item = 'lockpick', min = 1, max = 1, chance = 10}
+            { item = 'pistol_ammo',    min = 10, max = 25, chance = 50 },
+            { item = 'rifle_ammo',     min = 8,  max = 15, chance = 40 },
+            { item = 'weapon_molotov', min = 1,  max = 2,  chance = 15 },
+            { item = 'lockpick',       min = 1,  max = 1,  chance = 10 }
         }
     }
 }
@@ -260,7 +260,7 @@ Config.UseLootProps = false
 -- AMBIENT INFECTION
 -- ====================================
 Config.AmbientInfection = {
-    Enabled = false,
+    Enabled = true,
     ConversionRadius = 100.0,
     ConversionChance = 0.15,
     CheckInterval = 10000,
@@ -289,10 +289,10 @@ Config.Combat = {
 -- ZOMBIE BEHAVIOR
 -- ====================================
 Config.ZombieBehavior = {
-    WanderEnabled = true, -- Zombies laufen rum wenn idle
-    WanderInterval = {min = 5000, max = 10000}, -- ms zwischen Wander
-    WanderRadius = {min = 5, max = 20}, -- Meter Radius
-    WanderSpeed = 1.0, -- Geschwindigkeit beim Wandern
+    WanderEnabled = true,                         -- Zombies laufen rum wenn idle
+    WanderInterval = { min = 5000, max = 10000 }, -- ms zwischen Wander
+    WanderRadius = { min = 5, max = 20 },         -- Meter Radius
+    WanderSpeed = 1.0,                            -- Geschwindigkeit beim Wandern
 }
 
 Config.HeadshotBones = {
@@ -310,7 +310,7 @@ Config.KillTracking = {
     ShowKillNotification = true,
     Rewards = {
         Enabled = false,
-        Money = {min = 5, max = 15},
+        Money = { min = 5, max = 15 },
         MoneyAccount = 'cash',
     }
 }
@@ -385,23 +385,23 @@ Config.HordeSystem = {
     -- Camping Punishment (Spieler bleibt zu lange an Ort)
     CampingPunishment = {
         Enabled = true,
-        TimeThreshold = 120, -- Sekunden (2 Minuten)
+        TimeThreshold = 120,      -- Sekunden (2 Minuten)
         MovementThreshold = 15.0, -- Meter (Spieler muss sich mind. 15m bewegen)
-        HordeSize = {min = 8, max = 15},
+        HordeSize = { min = 8, max = 15 },
         SpawnRadius = 30.0,
     },
     CampingCheckInterval = 10000, -- Check alle 10 Sekunden
-    
+
     -- Random Events
     RandomEvents = {
         Enabled = true,
         IntervalMin = 1800000, -- Min 30 Minuten
         IntervalMax = 3600000, -- Max 60 Minuten
-        
+
         Types = {
-            {type = 'wandering_horde', chance = 50}, -- 50% Chance
-            {type = 'blood_moon', chance = 30},      -- 30% Chance
-            {type = 'zone_siege', chance = 20},      -- 20% Chance
+            { type = 'wandering_horde', chance = 50 }, -- 50% Chance
+            { type = 'blood_moon',      chance = 30 }, -- 30% Chance
+            { type = 'zone_siege',      chance = 20 }, -- 20% Chance
         }
     }
 }
